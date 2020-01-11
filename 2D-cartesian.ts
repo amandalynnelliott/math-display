@@ -23,9 +23,8 @@ To Do
 */
 
 window.onload = function () {
-    const canvas = document.getElementById("canvas");
-    /** @type {CanvasRenderingContext2D} */
-    const ctx = canvas.getContext("2d");
+    const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+    const ctx: CanvasRenderingContext2D = canvas.getContext("2d");
     let width = canvas.width = window.innerWidth;
     let height = canvas.height = window.innerHeight;
 
@@ -35,10 +34,10 @@ window.onload = function () {
     let offsetY = 0;
 
     ctx.font = "14px Roboto";
-    bgColor = "#222";
-    fontColor = "#EBEBEB";
-    axisColor = "#90DCB5";
-    gridColor = "#6BBCAC";
+    const bgColor = "#222";
+    const fontColor = "#EBEBEB";
+    const axisColor = "#90DCB5";
+    const gridColor = "#6BBCAC";
 
 
     function drawScreen() {
@@ -76,7 +75,7 @@ window.onload = function () {
         drawAxes(XAxis, YAxis, axisColor);
         drawGrid(origin, XAxis, YAxis, unit, gridColor, fontColor);
 
-        function drawAxes(XAxis, YAxis, axisColor) {
+        function drawAxes(XAxis, YAxis, axisColor: string) {
             ctx.beginPath();
             ctx.moveTo(XAxis.start.x, XAxis.start.y - offsetY);
             ctx.lineTo(XAxis.end.x, XAxis.end.y - offsetY);
@@ -87,7 +86,7 @@ window.onload = function () {
             ctx.stroke();
         };
 
-        function drawGrid(origin, XAxis, YAxis, unit, gridColor, fontColor) {
+        function drawGrid(origin, XAxis, YAxis, unit: number, gridColor: string, fontColor) {
             ctx.strokeStyle = gridColor;
             ctx.fillStyle = fontColor;
             // Draw vertical lines
@@ -102,7 +101,7 @@ window.onload = function () {
                 ctx.stroke();
 
                 if (i !== 0 && i % 5 === 0) {
-                    ctx.fillText(i, x, origin.y - offsetY);
+                    ctx.fillText(i.toString(), x, origin.y - offsetY);
                 }
             }
             // -- left side
@@ -116,7 +115,7 @@ window.onload = function () {
                 ctx.stroke();
 
                 if (i !== 0 && i % 5 === 0) {
-                    ctx.fillText(-i, x, origin.y - offsetY);
+                    ctx.fillText((-i).toString(), x, origin.y - offsetY);
                 }
             }
             // Draw horizontal lines
@@ -131,7 +130,7 @@ window.onload = function () {
                 ctx.stroke();
 
                 if (i !== 0 && i % 5 === 0) {
-                    ctx.fillText(-i, origin.x - offsetX, y);
+                    ctx.fillText((-i).toString(), origin.x - offsetX, y);
                 }
             }
             //-- top
@@ -145,14 +144,14 @@ window.onload = function () {
                 ctx.stroke();
 
                 if (i !== 0 && i % 5 === 0) {
-                    ctx.fillText(i, origin.x - offsetX, y);
+                    ctx.fillText(i.toString(), origin.x - offsetX, y);
                 }
             }
         };
 
         function drawFunction(mathFunction, color) {
-            let previousX = undefined;
-            let previousY = undefined;
+            let previousX: number = undefined;
+            let previousY: number = undefined;
 
             for (let px = 0; px < width; px++) {
                 const x = ((px + offsetX) / unit) - ((width / unit) / 2);
