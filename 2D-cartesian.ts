@@ -45,109 +45,98 @@ window.onload = function () {
         ctx.fillStyle = bgColor;
         ctx.fillRect(0, 0, width, height);
 
-        const XAxis = {
-            start: {
-                x: 0,
-                y: height / 2
-            },
-            end: {
-                x: width,
-                y: height / 2
-            }
+        const pixelOrigin = {
+            x: width / 2 - offsetX,
+            y: height / 2 - offsetY
         };
 
-        const YAxis = {
-            start: {
-                x: width / 2,
-                y: 0
-            },
-            end: {
-                x: width / 2,
-                y: height
-            }
-        };
+        // this is wrong
+        // const cartesianOrigin = {
+        //     x: (width / unit) / 2 - (offsetX / unit),
+        //     y: (height / unit) / 2 - (offsetY / unit)
+        // };
 
-        const origin = {
-            x: width / 2,
-            y: height / 2
-        };
-
-        drawAxes(XAxis, YAxis, axisColor);
-        drawGrid(origin, XAxis, YAxis, unit, gridColor, fontColor);
-
-        function drawAxes(XAxis, YAxis, axisColor: string) {
+        function drawHorizontalAxis() {
             ctx.beginPath();
-            ctx.moveTo(XAxis.start.x, XAxis.start.y - offsetY);
-            ctx.lineTo(XAxis.end.x, XAxis.end.y - offsetY);
-            ctx.moveTo(YAxis.start.x - offsetX, YAxis.start.y);
-            ctx.lineTo(YAxis.end.x - offsetX, YAxis.end.y);
+            ctx.moveTo(0, pixelOrigin.y);
+            ctx.lineTo(width, pixelOrigin.y);
             ctx.strokeStyle = axisColor;
             ctx.lineWidth = 1;
             ctx.stroke();
-        };
+        }
 
-        function drawGrid(origin, XAxis, YAxis, unit: number, gridColor: string, fontColor) {
+        function drawVerticalAxis() {
+            ctx.beginPath();
+            ctx.moveTo(pixelOrigin.x, 0);
+            ctx.lineTo(pixelOrigin.x, height);
+            ctx.strokeStyle = axisColor;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+
+        function drawGrid() {
             ctx.strokeStyle = gridColor;
             ctx.fillStyle = fontColor;
+
             // Draw vertical lines
             // -- right side
             for (let i = 0; i < 1000; i++) {
-                const x = origin.x + unit * i - offsetX;
+                const x = pixelOrigin.x + unit * i;
 
                 ctx.beginPath();
-                ctx.moveTo(x, YAxis.start.y);
-                ctx.lineTo(x, YAxis.end.y);
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
                 ctx.lineWidth = 0.25;
                 ctx.stroke();
 
                 if (i !== 0 && i % 5 === 0) {
-                    ctx.fillText(i.toString(), x, origin.y - offsetY);
+                    ctx.fillText(i.toString(), x, pixelOrigin.y);
                 }
             }
             // -- left side
             for (let i = 0; i < 1000; i++) {
-                const x = origin.x - unit * i - offsetX;
+                const x = pixelOrigin.x - unit * i;
 
                 ctx.beginPath();
-                ctx.moveTo(x, YAxis.start.y);
-                ctx.lineTo(x, YAxis.end.y);
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
                 ctx.lineWidth = 0.25;
                 ctx.stroke();
 
                 if (i !== 0 && i % 5 === 0) {
-                    ctx.fillText((-i).toString(), x, origin.y - offsetY);
+                    ctx.fillText((-i).toString(), x, pixelOrigin.y);
                 }
             }
             // Draw horizontal lines
             // -- bottom
             for (let i = 0; i < 1000; i++) {
-                const y = origin.y + unit * i - offsetY;
+                const y = pixelOrigin.y + unit * i;
 
                 ctx.beginPath();
-                ctx.moveTo(XAxis.start.x, y);
-                ctx.lineTo(XAxis.end.x, y);
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
                 ctx.lineWidth = 0.25;
                 ctx.stroke();
 
                 if (i !== 0 && i % 5 === 0) {
-                    ctx.fillText((-i).toString(), origin.x - offsetX, y);
+                    ctx.fillText((-i).toString(), pixelOrigin.x, y);
                 }
             }
             //-- top
             for (let i = 0; i < 1000; i++) {
-                const y = origin.y - unit * i - offsetY;
+                const y = pixelOrigin.y - unit * i;
 
                 ctx.beginPath();
-                ctx.moveTo(XAxis.start.x, y);
-                ctx.lineTo(XAxis.end.x, y);
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
                 ctx.lineWidth = 0.25;
                 ctx.stroke();
 
                 if (i !== 0 && i % 5 === 0) {
-                    ctx.fillText(i.toString(), origin.x - offsetX, y);
+                    ctx.fillText(i.toString(), pixelOrigin.x, y);
                 }
             }
-        };
+        }
 
         function drawFunction(mathFunction, color) {
             let previousX: number = undefined;
@@ -156,6 +145,8 @@ window.onload = function () {
             for (let px = 0; px < width; px++) {
                 const x = ((px + offsetX) / unit) - ((width / unit) / 2);
                 const y = mathFunction(x);
+
+                // console.log(x, y);
 
                 // if ((origin.y - offsetY - unit * y) < 0 || (origin.y - offsetY - unit * y) > height) {
                 //     continue;
@@ -166,34 +157,43 @@ window.onload = function () {
                 // ctx.arc(origin.x - offsetX + unit * x, origin.y - offsetY - unit * y, 1, 0, 2 * Math.PI, true);
                 // ctx.fill();
 
+                const currentX = pixelOrigin.x + unit * x;
+                const currentY = pixelOrigin.y - unit * y;
+
                 if (previousX !== undefined && previousY !== undefined) {
-                    ctx.strokeStyle = color;
-                    ctx.beginPath();
-                    ctx.moveTo(previousX, previousY);
-                    ctx.lineTo(origin.x - offsetX + unit * x, origin.y - offsetY - unit * y);
-                    ctx.lineWidth = 2;
-                    ctx.stroke();
+                    // if (Math.abs(previousY - currentY) < 100) {
+                        ctx.strokeStyle = color;
+                        ctx.beginPath();
+                        ctx.moveTo(previousX, previousY);
+                        ctx.lineTo(currentX, currentY);
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                    // }
                 }
 
                 ctx.strokeStyle = "#000";
                 ctx.fillStyle = "#000";
 
-                previousX = origin.x - offsetX + unit * x;
-                previousY = origin.y - offsetY - unit * y;
+                previousX = currentX;
+                previousY = currentY;
             }
         }
 
+        drawHorizontalAxis();
+        drawVerticalAxis();
+        drawGrid();
+
         drawFunction(function (x) {
-            return x * x * x;
+            return Math.tan(x);
         }, "#3197FF");
 
         // drawFunction(function(x) {
         //     return -Math.sin(x);
-        // });
+        // }, "#DDCA6F");
 
-        drawFunction(function (x) {
-            return Math.cos(x);
-        }, "#EA5356");
+        // drawFunction(function (x) {
+        //     return Math.cos(x);
+        // }, "#EA5356");
     };
 
     window.onresize = function (event) {
@@ -204,12 +204,12 @@ window.onload = function () {
 
     canvas.onwheel = function (event) {
         unit -= event.deltaY / 50;
-        // if (unit < 8) {
-        //     unit = 8;
-        // }
-        // if (unit > 130) {
-        //     unit = 130;
-        // }
+        if (unit < 8) {
+            unit = 8;
+        }
+        if (unit > 130) {
+            unit = 130;
+        }
         //console.log(unit);
         drawScreen();
     };
@@ -240,7 +240,5 @@ window.onload = function () {
     }
 
     drawScreen();
-
-
 };
 
