@@ -1,19 +1,6 @@
 /*
 
 To Do
-- Draw x-axis
-- Draw y-axis
-- Var square unit size
---- draw vertical line from y-axis every unit
---- draw horizontal line from x-axis every unit
-- number the x-axis
-- number the y-axis
-- window resize event
-- zoom control connected to unit
-- pan control
-- input math functions -origin and unit
-- dark theme
-
 - camera
 - zoom math function
 --- zoom grid numbering change & affecting grid size
@@ -78,62 +65,37 @@ window.onload = function () {
             ctx.strokeStyle = gridColor;
             ctx.fillStyle = fontColor;
 
-            // Draw vertical lines
-            // -- right side
-            for (let i = 0; i < 1000; i++) {
-                const x = pixelOrigin.x + unit * i;
+            const leftEdge = Math.floor(-(width / 2 - offsetX) / unit);
+            const rightEdge = Math.ceil((width / 2 + offsetX) / unit);
+            for (let x = leftEdge; x <= rightEdge; x++) {
+                const px = pixelOrigin.x + unit * x;
 
                 ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, height);
+                ctx.moveTo(px, 0);
+                ctx.lineTo(px, height);
                 ctx.lineWidth = 0.25;
                 ctx.stroke();
 
-                if (i !== 0 && i % 5 === 0) {
-                    ctx.fillText(i.toString(), x, pixelOrigin.y);
+                // TODO: scale based on unit
+                if (x !== 0 && x % 5 === 0) {
+                    ctx.fillText(x.toString(), px, pixelOrigin.y);
                 }
             }
-            // -- left side
-            for (let i = 0; i < 1000; i++) {
-                const x = pixelOrigin.x - unit * i;
+
+            const topEdge = Math.floor(-(height / 2 - offsetY) / unit);
+            const bottomEdge = Math.ceil((height / 2 + offsetY) / unit);
+            for (let y = topEdge; y <= bottomEdge; y++) {
+                const py = pixelOrigin.y + unit * y;
 
                 ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, height);
+                ctx.moveTo(0, py);
+                ctx.lineTo(width, py);
                 ctx.lineWidth = 0.25;
                 ctx.stroke();
 
-                if (i !== 0 && i % 5 === 0) {
-                    ctx.fillText((-i).toString(), x, pixelOrigin.y);
-                }
-            }
-            // Draw horizontal lines
-            // -- bottom
-            for (let i = 0; i < 1000; i++) {
-                const y = pixelOrigin.y + unit * i;
-
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(width, y);
-                ctx.lineWidth = 0.25;
-                ctx.stroke();
-
-                if (i !== 0 && i % 5 === 0) {
-                    ctx.fillText((-i).toString(), pixelOrigin.x, y);
-                }
-            }
-            //-- top
-            for (let i = 0; i < 1000; i++) {
-                const y = pixelOrigin.y - unit * i;
-
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(width, y);
-                ctx.lineWidth = 0.25;
-                ctx.stroke();
-
-                if (i !== 0 && i % 5 === 0) {
-                    ctx.fillText(i.toString(), pixelOrigin.x, y);
+                // TODO: scale based on unit
+                if (y !== 0 && y % 5 === 0) {
+                    ctx.fillText(y.toString(), pixelOrigin.x, py);
                 }
             }
         }
@@ -145,8 +107,6 @@ window.onload = function () {
             for (let px = 0; px < width; px++) {
                 const x = ((px + offsetX) / unit) - ((width / unit) / 2);
                 const y = mathFunction(x);
-
-                // console.log(x, y);
 
                 // if ((origin.y - offsetY - unit * y) < 0 || (origin.y - offsetY - unit * y) > height) {
                 //     continue;
@@ -161,14 +121,12 @@ window.onload = function () {
                 const currentY = pixelOrigin.y - unit * y;
 
                 if (previousX !== undefined && previousY !== undefined) {
-                    // if (Math.abs(previousY - currentY) < 100) {
-                        ctx.strokeStyle = color;
-                        ctx.beginPath();
-                        ctx.moveTo(previousX, previousY);
-                        ctx.lineTo(currentX, currentY);
-                        ctx.lineWidth = 2;
-                        ctx.stroke();
-                    // }
+                    ctx.strokeStyle = color;
+                    ctx.beginPath();
+                    ctx.moveTo(previousX, previousY);
+                    ctx.lineTo(currentX, currentY);
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
                 }
 
                 ctx.strokeStyle = "#000";
@@ -184,16 +142,22 @@ window.onload = function () {
         drawGrid();
 
         drawFunction(function (x) {
-            return Math.tan(x);
+            // return Math.tan(x);
+
+            // return x ** 3;
+
+            if (x < 2) return x ** 2;
+            if (x === 2) return 6;
+            if (x > 2) return 10 - x;
         }, "#3197FF");
 
-        // drawFunction(function(x) {
-        //     return -Math.sin(x);
-        // }, "#DDCA6F");
+        drawFunction(function (x) {
+            return -Math.sin(x);
+        }, "#DDCA6F");
 
-        // drawFunction(function (x) {
-        //     return Math.cos(x);
-        // }, "#EA5356");
+        drawFunction(function (x) {
+            return Math.cos(x);
+        }, "#EA5356");
     };
 
     window.onresize = function (event) {
@@ -203,14 +167,19 @@ window.onload = function () {
     };
 
     canvas.onwheel = function (event) {
-        unit -= event.deltaY / 50;
+        const beforeOffsetX = offsetX;
+        const beforeOffsetY = offsetY;
+        const beforeOffsetXCart = offsetX / unit;
+        const beforeOffsetYCart = offsetY / unit;
+        unit -= event.deltaY * unit / 2500;
+        offsetX = beforeOffsetXCart * unit;
+        offsetY = beforeOffsetYCart * unit;
+
         if (unit < 8) {
             unit = 8;
+            offsetX = beforeOffsetX;
+            offsetY = beforeOffsetY;
         }
-        if (unit > 130) {
-            unit = 130;
-        }
-        //console.log(unit);
         drawScreen();
     };
 
