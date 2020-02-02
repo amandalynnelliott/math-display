@@ -15,7 +15,7 @@ window.onload = function () {
     let width = canvas.width = window.innerWidth;
     let height = canvas.height = window.innerHeight;
 
-    let unit = 50; // Changes when zoom
+    let scale = 50; // Changes when zoom
 
     let offsetX = 0;
     let offsetY = 0;
@@ -65,10 +65,10 @@ window.onload = function () {
             ctx.strokeStyle = gridColor;
             ctx.fillStyle = fontColor;
 
-            const leftEdge = Math.floor(-(width / 2 - offsetX) / unit);
-            const rightEdge = Math.ceil((width / 2 + offsetX) / unit);
+            const leftEdge = Math.floor(-(width / 2 - offsetX) / scale);
+            const rightEdge = Math.ceil((width / 2 + offsetX) / scale);
             for (let x = leftEdge; x <= rightEdge; x++) {
-                const px = pixelOrigin.x + unit * x;
+                const px = pixelOrigin.x + scale * x;
 
                 ctx.beginPath();
                 ctx.moveTo(px, 0);
@@ -82,10 +82,10 @@ window.onload = function () {
                 }
             }
 
-            const topEdge = Math.floor(-(height / 2 - offsetY) / unit);
-            const bottomEdge = Math.ceil((height / 2 + offsetY) / unit);
+            const topEdge = Math.floor(-(height / 2 - offsetY) / scale);
+            const bottomEdge = Math.ceil((height / 2 + offsetY) / scale);
             for (let y = topEdge; y <= bottomEdge; y++) {
-                const py = pixelOrigin.y + unit * y;
+                const py = pixelOrigin.y + scale * y;
 
                 ctx.beginPath();
                 ctx.moveTo(0, py);
@@ -104,37 +104,75 @@ window.onload = function () {
             let previousX: number = undefined;
             let previousY: number = undefined;
 
-            for (let px = 0; px < width; px++) {
-                const x = ((px + offsetX) / unit) - ((width / unit) / 2);
-                const y = mathFunction(x);
+            // let lineExists = 0;
+            // for (let px = 0; px < width; px++) {
+            //     const x = ((px + offsetX) / scale) - ((width / scale) / 2);
+            //     const y = mathFunction(x);
+            //     const py = pixelOrigin.y + scale * y;
 
-                // if ((origin.y - offsetY - unit * y) < 0 || (origin.y - offsetY - unit * y) > height) {
-                //     continue;
-                // }
+            //     if (py >= (-height) && py <= height * 2) {
+            //         if (lineExists > 1) {
+            //             ctx.beginPath();
+            //         }
+            //         if (previousY !== undefined && ((previousY > 0 && y < 0) || (previousY < 0 && y > 0))) {
+            //             ctx.moveTo(px, py);
+            //         } else {
+            //             ctx.lineTo(px, py);
+            //         }
+            //         lineExists = 0;
+            //         previousY = undefined;
+            //     } else if (lineExists <= 1) {
+            //         ctx.lineTo(px, py);
+            //         previousY = y;
+            //         ctx.strokeStyle = color;
+            //         ctx.lineWidth = 2;
+            //         ctx.stroke();
+            //         ctx.strokeStyle = "#000";
+            //         ctx.lineWidth = 1;
+            //         lineExists++;
+            //     }
+            // }
 
-                // ctx.beginPath();
-                // ctx.fillStyle = color;
-                // ctx.arc(origin.x - offsetX + unit * x, origin.y - offsetY - unit * y, 1, 0, 2 * Math.PI, true);
-                // ctx.fill();
+            ctx.beginPath();
+            for (let px = 0; px < width; px += (1 / scale)) {
+                for (let subX = 0; subX < 1 / scale; subX += (1 / scale) / 10) {
+                    const x = (((px + subX) + offsetX) / scale) - ((width / scale) / 2);
+                    const y = mathFunction(x);
+                    const py = pixelOrigin.y + scale * y;
 
-                const currentX = pixelOrigin.x + unit * x;
-                const currentY = pixelOrigin.y - unit * y;
-
-                if (previousX !== undefined && previousY !== undefined) {
-                    ctx.strokeStyle = color;
-                    ctx.beginPath();
-                    ctx.moveTo(previousX, previousY);
-                    ctx.lineTo(currentX, currentY);
-                    ctx.lineWidth = 2;
-                    ctx.stroke();
+                    if (previousY !== undefined) {
+                        if (py < 0 || py >= height) {
+                            if (previousY >= 0 && previousY < height) {
+                                ctx.lineTo(px + subX, py);
+                            }
+                        } else {
+                            if (previousY < 0 || previousY >= height) {
+                                ctx.moveTo(previousX, previousY);
+                            }
+                            if (subX === 0) {
+                                if (py >= 0 && py < height) {
+                                    if (Math.abs(previousY - py) > (height)) {
+                                        ctx.moveTo(px, py);
+                                    } else {
+                                        ctx.lineTo(px, py);
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        if (subX === 0) {
+                            ctx.moveTo(px, py);
+                        }
+                    }
+                    previousY = py;
+                    previousX = px + subX;
                 }
-
-                ctx.strokeStyle = "#000";
-                ctx.fillStyle = "#000";
-
-                previousX = currentX;
-                previousY = currentY;
             }
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.strokeStyle = "#000";
+            ctx.lineWidth = 1;
         }
 
         drawHorizontalAxis();
@@ -142,22 +180,24 @@ window.onload = function () {
         drawGrid();
 
         drawFunction(function (x) {
-            // return Math.tan(x);
+            return Math.tan(x);
 
             // return x ** 3;
 
-            if (x < 2) return x ** 2;
-            if (x === 2) return 6;
-            if (x > 2) return 10 - x;
+            // if (x < 2) return x ** 2;
+            // if (x === 2) return 6;
+            // if (x > 2) return 10 - x;
+
+            // return 1 / x;
         }, "#3197FF");
 
-        drawFunction(function (x) {
-            return -Math.sin(x);
-        }, "#DDCA6F");
+        // drawFunction(function (x) {
+        //     return -Math.sin(x);
+        // }, "#DDCA6F");
 
-        drawFunction(function (x) {
-            return Math.cos(x);
-        }, "#EA5356");
+        // drawFunction(function (x) {
+        //     return Math.cos(x);
+        // }, "#EA5356");
     };
 
     window.onresize = function (event) {
@@ -169,14 +209,14 @@ window.onload = function () {
     canvas.onwheel = function (event) {
         const beforeOffsetX = offsetX;
         const beforeOffsetY = offsetY;
-        const beforeOffsetXCart = offsetX / unit;
-        const beforeOffsetYCart = offsetY / unit;
-        unit -= event.deltaY * unit / 2500;
-        offsetX = beforeOffsetXCart * unit;
-        offsetY = beforeOffsetYCart * unit;
+        const beforeOffsetXCart = offsetX / scale;
+        const beforeOffsetYCart = offsetY / scale;
+        scale -= event.deltaY * scale / 2500;
+        offsetX = beforeOffsetXCart * scale;
+        offsetY = beforeOffsetYCart * scale;
 
-        if (unit < 8) {
-            unit = 8;
+        if (scale < 8) {
+            scale = 8;
             offsetX = beforeOffsetX;
             offsetY = beforeOffsetY;
         }
