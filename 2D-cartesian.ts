@@ -1,13 +1,77 @@
 /*
-
 To Do
-- camera
+- asymptotes
 - zoom math function
 --- zoom grid numbering change & affecting grid size
 ------ every 5th line darkens on unit = 20
 ------ every 10th line darkens on unir = 12
-
 */
+
+class Vector {
+    i: number;
+    j: number;
+
+    constructor(i: number, j: number) {
+        this.i = i;
+        this.j = j;
+    }
+
+    copy(): Vector {
+        return new Vector(this.i, this.j);
+    }
+
+    magnitude(): number {
+        return Math.sqrt(Math.pow(this.i, 2) + Math.pow(this.j, 2));
+    }
+
+    normalized(): Vector {
+        return this.divide(this.magnitude());
+    }
+
+    // angle(): number {
+    //     return arctan(this.j / this.i);
+    // }
+
+    add(vector: Vector): Vector {
+        const result = this.copy();
+        result.i += vector.i;
+        result.j += vector.j;
+        return result;
+    }
+
+    subtract(vector: Vector): Vector {
+        const result = this.copy();
+        result.i -= vector.i;
+        result.j -= vector.j;
+        return result;
+    }
+
+    divide(scalar: number): Vector {
+        const result = this.copy();
+        result.i /= scalar;
+        result.j /= scalar;
+        return result;
+    }
+
+    multiply(scalar: number): Vector {
+        const result = this.copy();
+        result.i *= scalar;
+        result.j *= scalar;
+        return result;
+    }
+
+    perpendicular(): Vector {
+        return new Vector(-this.j, this.i);
+    }
+
+    // transform(matrix: Matrix) {
+    //     return ;
+    // }
+
+    toString(): string {
+        return `(${this.i}, ${this.j})`;
+    }
+}
 
 window.onload = function () {
     const canvas = document.getElementById("canvas") as HTMLCanvasElement;
@@ -95,7 +159,7 @@ window.onload = function () {
 
                 // TODO: scale based on unit
                 if (y !== 0 && y % 5 === 0) {
-                    ctx.fillText(y.toString(), pixelOrigin.x, py);
+                    ctx.fillText((-y).toString(), pixelOrigin.x, py);
                 }
             }
         }
@@ -137,7 +201,7 @@ window.onload = function () {
             for (let px = 0; px < width; px += (1 / scale)) {
                 for (let subX = 0; subX < 1 / scale; subX += (1 / scale) / 10) {
                     const x = (((px + subX) + offsetX) / scale) - ((width / scale) / 2);
-                    const y = mathFunction(x);
+                    const y = -mathFunction(x);
                     const py = pixelOrigin.y + scale * y;
 
                     if (previousY !== undefined) {
@@ -175,29 +239,84 @@ window.onload = function () {
             ctx.lineWidth = 1;
         }
 
+        function drawVector(vector: Vector, color: string) {
+            const px = pixelOrigin.x + scale * vector.i;
+            const py = pixelOrigin.y + scale * -vector.j;
+
+            const a = vector.normalized().divide(2);
+            const c = vector.subtract(a);
+            const b = vector.perpendicular().normalized().divide(4);
+            const d = c.add(b);
+            const e = c.subtract(b);
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+
+            ctx.beginPath();
+            ctx.moveTo(pixelOrigin.x, pixelOrigin.y);
+            ctx.lineTo(px, py);
+            ctx.stroke();
+
+            // v -> d
+            ctx.beginPath();
+            ctx.moveTo(px, py);
+            ctx.lineTo(pixelOrigin.x + scale * d.i, pixelOrigin.y + scale * -d.j);
+            ctx.stroke();
+
+            // v -> e
+            ctx.beginPath();
+            ctx.moveTo(px, py);
+            ctx.lineTo(pixelOrigin.x + scale * e.i, pixelOrigin.y + scale * -e.j);
+            ctx.stroke();
+
+            // d -> e
+            ctx.beginPath();
+            ctx.moveTo(pixelOrigin.x + scale * d.i, pixelOrigin.y + scale * -d.j);
+            ctx.lineTo(pixelOrigin.x + scale * e.i, pixelOrigin.y + scale * -e.j);
+            ctx.stroke();
+
+            ctx.strokeStyle = "#000";
+            ctx.lineWidth = 1;
+
+        }
+
         drawHorizontalAxis();
         drawVerticalAxis();
         drawGrid();
 
-        drawFunction(function (x) {
-            return Math.tan(x);
+        const V1 = new Vector(5, 5);
+        drawVector(V1, '#ffffff');
+        const V2 = new Vector(3, -1);
+        drawVector(V2, '#EA5356');
+        const V3 = V1.add(V2);
+        drawVector(V3, '#DDCA6F');
+        const V4 = V1.multiply(2).add(V3);
+        drawVector(V4, '#3197FF');
 
-            // return x ** 3;
 
-            // if (x < 2) return x ** 2;
-            // if (x === 2) return 6;
-            // if (x > 2) return 10 - x;
+        // drawFunction(x => 2 * x, '#ffffff');
 
-            // return 1 / x;
-        }, "#3197FF");
+        // TO DO: Work on asymptotes
+        // drawFunction(function (x) {
+        //     // return Math.tan(x);
+
+        //     // return x ** 3;
+
+        //     // if (x < 2) return x ** 2;
+        //     // if (x === 2) return 6;
+        //     // if (x > 2) return 10 - x;
+
+        //     // return 1 / x;
+        // }, "#3197FF");
 
         // drawFunction(function (x) {
-        //     return -Math.sin(x);
+        //     return Math.sin(x);
         // }, "#DDCA6F");
 
         // drawFunction(function (x) {
         //     return Math.cos(x);
         // }, "#EA5356");
+
     };
 
     window.onresize = function (event) {
