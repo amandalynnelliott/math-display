@@ -64,12 +64,26 @@ class Vector {
         return new Vector(-this.j, this.i);
     }
 
-    // transform(matrix: Matrix) {
-    //     return ;
-    // }
+    transform(matrix: Matrix): Vector {
+        const i = (matrix.data[0][0] * this.i) + (matrix.data[0][1] * this.j);
+        const j = (matrix.data[1][0] * this.i) + (matrix.data[1][1] * this.j);
+
+        return new Vector(i, j);
+    }
 
     toString(): string {
         return `(${this.i}, ${this.j})`;
+    }
+}
+
+class Matrix {
+    data: number[][];
+
+    constructor(a: number, b: number, c: number, d: number, ) {
+        this.data = [
+            [a, b],
+            [c, d]
+        ];
     }
 }
 
@@ -100,12 +114,6 @@ window.onload = function () {
             x: width / 2 - offsetX,
             y: height / 2 - offsetY
         };
-
-        // this is wrong
-        // const cartesianOrigin = {
-        //     x: (width / unit) / 2 - (offsetX / unit),
-        //     y: (height / unit) / 2 - (offsetY / unit)
-        // };
 
         function drawHorizontalAxis() {
             ctx.beginPath();
@@ -164,72 +172,74 @@ window.onload = function () {
             }
         }
 
-        function drawFunction(mathFunction, color) {
+        function drawFunction(mathFunction: (x: number) => number, color: string, doSubPixel = false) {
             let previousX: number = undefined;
             let previousY: number = undefined;
 
-            // let lineExists = 0;
-            // for (let px = 0; px < width; px++) {
-            //     const x = ((px + offsetX) / scale) - ((width / scale) / 2);
-            //     const y = mathFunction(x);
-            //     const py = pixelOrigin.y + scale * y;
-
-            //     if (py >= (-height) && py <= height * 2) {
-            //         if (lineExists > 1) {
-            //             ctx.beginPath();
-            //         }
-            //         if (previousY !== undefined && ((previousY > 0 && y < 0) || (previousY < 0 && y > 0))) {
-            //             ctx.moveTo(px, py);
-            //         } else {
-            //             ctx.lineTo(px, py);
-            //         }
-            //         lineExists = 0;
-            //         previousY = undefined;
-            //     } else if (lineExists <= 1) {
-            //         ctx.lineTo(px, py);
-            //         previousY = y;
-            //         ctx.strokeStyle = color;
-            //         ctx.lineWidth = 2;
-            //         ctx.stroke();
-            //         ctx.strokeStyle = "#000";
-            //         ctx.lineWidth = 1;
-            //         lineExists++;
-            //     }
-            // }
-
             ctx.beginPath();
-            for (let px = 0; px < width; px += (1 / scale)) {
-                for (let subX = 0; subX < 1 / scale; subX += (1 / scale) / 10) {
-                    const x = (((px + subX) + offsetX) / scale) - ((width / scale) / 2);
+            if (doSubPixel) {
+                for (let px = 0; px < width; px += (1 / scale)) {
+                    for (let subX = 0; subX < 1 / scale; subX += (1 / scale) / 10) {
+                        const x = (((px + subX) + offsetX) / scale) - ((width / scale) / 2);
+                        const y = -mathFunction(x);
+                        const py = pixelOrigin.y + scale * y;
+
+                        if (previousY !== undefined) {
+                            if (py < 0 || py >= height) {
+                                if (previousY >= 0 && previousY < height) {
+                                    ctx.lineTo(px + subX, py);
+                                }
+                            } else {
+                                if (previousY < 0 || previousY >= height) {
+                                    ctx.moveTo(previousX, previousY);
+                                }
+                                if (subX === 0) {
+                                    if (py >= 0 && py < height) {
+                                        if (Math.abs(previousY - py) > (height)) {
+                                            ctx.moveTo(px, py);
+                                        } else {
+                                            ctx.lineTo(px, py);
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            if (subX === 0) {
+                                ctx.moveTo(px, py);
+                            }
+                        }
+                        previousY = py;
+                        previousX = px + subX;
+                    }
+                }
+            } else {
+                for (let px = 0; px < width; px++) {
+                    const x = (((px) + offsetX) / scale) - ((width / scale) / 2);
                     const y = -mathFunction(x);
                     const py = pixelOrigin.y + scale * y;
 
                     if (previousY !== undefined) {
                         if (py < 0 || py >= height) {
                             if (previousY >= 0 && previousY < height) {
-                                ctx.lineTo(px + subX, py);
+                                ctx.lineTo(px, py);
                             }
                         } else {
                             if (previousY < 0 || previousY >= height) {
                                 ctx.moveTo(previousX, previousY);
                             }
-                            if (subX === 0) {
-                                if (py >= 0 && py < height) {
-                                    if (Math.abs(previousY - py) > (height)) {
-                                        ctx.moveTo(px, py);
-                                    } else {
-                                        ctx.lineTo(px, py);
-                                    }
+                            if (py >= 0 && py < height) {
+                                if (Math.abs(previousY - py) > (height)) {
+                                    ctx.moveTo(px, py);
+                                } else {
+                                    ctx.lineTo(px, py);
                                 }
                             }
                         }
                     } else {
-                        if (subX === 0) {
-                            ctx.moveTo(px, py);
-                        }
+                        ctx.moveTo(px, py);
                     }
                     previousY = py;
-                    previousX = px + subX;
+                    previousX = px;
                 }
             }
             ctx.strokeStyle = color;
@@ -239,13 +249,59 @@ window.onload = function () {
             ctx.lineWidth = 1;
         }
 
-        function drawVector(vector: Vector, color: string) {
-            const px = pixelOrigin.x + scale * vector.i;
-            const py = pixelOrigin.y + scale * -vector.j;
+        function drawParametric(Xfunct: (t: number) => number, Yfunct: (t: number) => number, ti: number, tf: number, color: string, fill = false) {
+            let previousX: number = undefined;
+            let previousY: number = undefined;
 
-            const a = vector.normalized().divide(2);
-            const c = vector.subtract(a);
-            const b = vector.perpendicular().normalized().divide(4);
+            ctx.beginPath();
+            for (let t = ti; t <= tf; t += (1 / scale)) {
+                const x = Xfunct(t);
+                const y = -Yfunct(t);
+
+                const px = pixelOrigin.x + scale * x;
+                const py = pixelOrigin.y + scale * y;
+
+                if (previousY !== undefined) {
+                    if (py < 0 || py >= height) {
+                        if (previousY >= 0 && previousY < height) {
+                            ctx.lineTo(px, py);
+                        }
+                    } else {
+                        if (previousY < 0 || previousY >= height) {
+                            ctx.moveTo(previousX, previousY);
+                        }
+                        if (py >= 0 && py < height) {
+                            if (Math.abs(previousY - py) > (height)) {
+                                ctx.moveTo(px, py);
+                            } else {
+                                ctx.lineTo(px, py);
+                            }
+                        }
+                    }
+                } else {
+                    ctx.moveTo(px, py);
+                }
+                previousY = py;
+                previousX = px;
+            }
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 2;
+            if (fill) {
+                ctx.fill();
+            } else {
+                ctx.stroke();
+            }
+            ctx.strokeStyle = "#000";
+            ctx.fillStyle = "#000";
+            ctx.lineWidth = 1;
+        }
+
+        function drawVector(vector: Vector, color: string, originX: number = 0, originY: number = 0, arrow: boolean = true) {
+            const pixelVector = new Vector(scale * vector.i, scale * -vector.j);
+            const a = pixelVector.normalized().multiply(20);
+            const c = pixelVector.subtract(a);
+            const b = pixelVector.perpendicular().normalized().multiply(10);
             const d = c.add(b);
             const e = c.subtract(b);
 
@@ -253,42 +309,76 @@ window.onload = function () {
             ctx.fillStyle = color;
             ctx.lineWidth = 2;
 
+            // line
             ctx.beginPath();
-            ctx.moveTo(pixelOrigin.x, pixelOrigin.y);
-            ctx.lineTo(px, py);
+            ctx.moveTo(
+                (originX * scale) + pixelOrigin.x,
+                (-originY * scale) + pixelOrigin.y);
+            if (arrow) {
+                ctx.lineTo(
+                    (originX * scale) + pixelOrigin.x + c.i,
+                    (-originY * scale) + pixelOrigin.y + c.j);
+
+            } else {
+                ctx.lineTo(
+                    (originX * scale) + pixelOrigin.x + pixelVector.i,
+                    (-originY * scale) + pixelOrigin.y + pixelVector.j);
+            }
             ctx.stroke();
 
-            ctx.beginPath();
-            ctx.moveTo(px, py);
-            ctx.lineTo(pixelOrigin.x + scale * d.i, pixelOrigin.y + scale * -d.j);
-            ctx.lineTo(pixelOrigin.x + scale * e.i, pixelOrigin.y + scale * -e.j);
-            ctx.fill();
+            // arrow
+            if (arrow) {
+                ctx.beginPath();
+                ctx.moveTo(
+                    (originX * scale) + pixelOrigin.x + pixelVector.i,
+                    (-originY * scale) + pixelOrigin.y + pixelVector.j);
+                ctx.lineTo(
+                    (originX * scale) + pixelOrigin.x + d.i,
+                    (-originY * scale) + pixelOrigin.y + d.j);
+                ctx.lineTo(
+                    (originX * scale) + pixelOrigin.x + e.i,
+                    (-originY * scale) + pixelOrigin.y + e.j);
+                ctx.fill();
+            }
 
             ctx.strokeStyle = "#000";
-            ctx.fillStyle="#000";
+            ctx.fillStyle = "#000";
             ctx.lineWidth = 1;
-
         }
 
         drawHorizontalAxis();
         drawVerticalAxis();
         drawGrid();
 
-        const V1 = new Vector(5, 5);
-        drawVector(V1, '#ffffff');
-        const V2 = new Vector(3, -1);
-        drawVector(V2, '#EA5356');
-        const V3 = V1.add(V2);
-        drawVector(V3, '#DDCA6F');
-        const V4 = V1.multiply(2).add(V3);
-        drawVector(V4, '#3197FF');
+        const a = Math.sin(Date.now() / 10000) * 10;
 
+        const V1 = new Vector(5, 5);
+        drawVector(V1, '#ffffff', 0, 0, false);
+        const V2 = new Vector(3, -1);
+        drawVector(V2, '#ffffff', V1.i, V1.j, false);
+        const V3 = V1.add(V2);
+        drawVector(V3, '#ffffff', 0, 0, false);
+
+        const theta = (Math.PI / 2) + a;
+        const matrix = new Matrix(
+            Math.cos(theta), -Math.sin(theta),
+            Math.sin(theta), Math.cos(theta)
+        );
+        const V1Transform = V1.transform(matrix);
+        const V2Transform = V2.transform(matrix);
+        const V3Transform = V3.transform(matrix);
+        drawVector(V1Transform, '#DDCA6F', 0, 0, false);
+        drawVector(V2Transform, '#DDCA6F', V1Transform.i, V1Transform.j, false);
+        drawVector(V3Transform, '#DDCA6F', 0, 0, false);
+
+        const V4 = V1.multiply(0.5).add(V3);
+        drawVector(V4, '#3197FF');
 
         // drawFunction(x => 2 * x, '#ffffff');
 
         // TO DO: Work on asymptotes
         // drawFunction(function (x) {
-        //     // return Math.tan(x);
+        //     return Math.tan(x);
 
         //     // return x ** 3;
 
@@ -297,22 +387,56 @@ window.onload = function () {
         //     // if (x > 2) return 10 - x;
 
         //     // return 1 / x;
-        // }, "#3197FF");
+        // }, "#3197FF", true);
 
-        // drawFunction(function (x) {
-        //     return Math.sin(x);
-        // }, "#DDCA6F");
+        drawFunction(function (x) {
+            return Math.sin(x + a);
+        }, "#DDCA6F");
 
-        // drawFunction(function (x) {
-        //     return Math.cos(x);
-        // }, "#EA5356");
+        drawFunction(function (x) {
+            return Math.cos(x) * a;
+        }, "#EA5356");
 
+        // line
+        drawParametric(
+            function (t) {
+                return (a * t) - Math.sin(a * t);
+            },
+            function (t) {
+                return 1 - Math.cos(a * t);
+            },
+            0, 1, '#fff'
+        );
+        // circle
+        drawParametric(
+            function (t) {
+                return Math.cos(t) + a;
+            },
+            function (t) {
+                return Math.sin(t) + 1;
+            },
+            0, Math.PI * 2,
+            '#3197FF'
+        );
+        // point
+        drawParametric(
+            function (t) {
+                return Math.cos(t) / 20 + (a - Math.sin(a));
+            },
+            function (t) {
+                return Math.sin(t) / 20 + (1 - Math.cos(a));
+            },
+            0, Math.PI * 2,
+            '#FFA500',
+            true
+        );
+
+        requestAnimationFrame(drawScreen);
     };
 
     window.onresize = function (event) {
         width = canvas.width = window.innerWidth;
         height = canvas.height = window.innerHeight;
-        drawScreen();
     };
 
     canvas.onwheel = function (event) {
@@ -329,7 +453,6 @@ window.onload = function () {
             offsetX = beforeOffsetX;
             offsetY = beforeOffsetY;
         }
-        drawScreen();
     };
 
     let drag = false;
@@ -349,7 +472,6 @@ window.onload = function () {
         if (drag) {
             offsetX = mouseX - currentMouseX;
             offsetY = mouseY - currentMouseY;
-            drawScreen();
         }
     }
 
