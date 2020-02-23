@@ -250,6 +250,7 @@ window.onload = function () {
             const e = c.subtract(b);
 
             ctx.strokeStyle = color;
+            ctx.fillStyle = color;
             ctx.lineWidth = 2;
 
             ctx.beginPath();
@@ -257,25 +258,14 @@ window.onload = function () {
             ctx.lineTo(px, py);
             ctx.stroke();
 
-            // v -> d
             ctx.beginPath();
             ctx.moveTo(px, py);
             ctx.lineTo(pixelOrigin.x + scale * d.i, pixelOrigin.y + scale * -d.j);
-            ctx.stroke();
-
-            // v -> e
-            ctx.beginPath();
-            ctx.moveTo(px, py);
             ctx.lineTo(pixelOrigin.x + scale * e.i, pixelOrigin.y + scale * -e.j);
-            ctx.stroke();
-
-            // d -> e
-            ctx.beginPath();
-            ctx.moveTo(pixelOrigin.x + scale * d.i, pixelOrigin.y + scale * -d.j);
-            ctx.lineTo(pixelOrigin.x + scale * e.i, pixelOrigin.y + scale * -e.j);
-            ctx.stroke();
+            ctx.fill();
 
             ctx.strokeStyle = "#000";
+            ctx.fillStyle="#000";
             ctx.lineWidth = 1;
 
         }
