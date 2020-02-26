@@ -21,3 +21,9 @@ npm run build
 ```sh
 npm run watch
 ```
+
+## Run Tests
+
+```sh
+npm test
+```
