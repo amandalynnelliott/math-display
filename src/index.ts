@@ -357,7 +357,7 @@ window.onload = function () {
         requestAnimationFrame(drawScreen);
     };
 
-    window.onresize = function (event) {
+    window.onresize = function () {
         width = canvas.width = window.innerWidth;
         height = canvas.height = window.innerHeight;
     };

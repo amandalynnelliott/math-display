@@ -1,25 +1,31 @@
 {
-    "compilerOptions": {
-        "lib": [
-            "es5",
-            "es2015.promise",
-            "dom",
-            "es2015"
-        ],
-        "target": "es5",
-        "typeRoots": [
-            "node_modules/@types"
-        ],
-        "outDir": "dist",
-        "module": "es2015",
-        "moduleResolution": "node",
-        "emitDecoratorMetadata": true,
-        "experimentalDecorators": true,
-        "allowSyntheticDefaultImports": true,
-        "declaration": false,
-        "sourceMap": true
-    },
-    "exclude": [
-        "node_modules"
-    ]
+  "compilerOptions": {
+    "lib": [
+      "es5",
+      "es2015.promise",
+      "dom",
+      "es2015"
+    ],
+    "target": "es5",
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "outDir": "dist",
+    "module": "es2015",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "declaration": false,
+    "sourceMap": true,
+    "removeComments": true,
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts"
+  ]
 }
