@@ -5,7 +5,7 @@
 Download and install [Git](https://git-scm.com/) and [Node.js](https://nodejs.org/).
 
 ```sh
-git clone https://github.com/daviskauffmann/math-display.git
+git clone https://github.com/amandalynnelliott/math-display.git
 cd math-display
 npm install
 ```
