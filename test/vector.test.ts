@@ -1,6 +1,6 @@
 import Vector from '../src/Vector';
 
-test('create a new vector object', () => {
+test('create a new vector', () => {
     const vector = new Vector(1, 1);
     expect(vector).toBeInstanceOf(Vector);
     expect(vector).toHaveProperty('i', 1);

@@ -1,5 +1,8 @@
 import Matrix from './Matrix';
 
+/**
+ * A 2-dimensional vector.
+ */
 export default class Vector {
     i: number;
     j: number;
@@ -60,7 +63,6 @@ export default class Vector {
     transform(matrix: Matrix): Vector {
         const i = (matrix.data[0][0] * this.i) + (matrix.data[0][1] * this.j);
         const j = (matrix.data[1][0] * this.i) + (matrix.data[1][1] * this.j);
-
         return new Vector(i, j);
     }
 
