@@ -1,7 +1,7 @@
 /**
  * A row-major 2x2 matrix.
  */
-export default class Matrix {
+export class Matrix {
     data: number[][];
 
     constructor(m00: number, m01: number, m10: number, m11: number) {

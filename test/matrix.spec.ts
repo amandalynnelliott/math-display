@@ -1,4 +1,4 @@
-import Matrix from '../src/Matrix';
+import {Matrix} from '../src/Matrix';
 
 test('create a new matrix', () => {
     const matrix = new Matrix(1, 2, 3, 4);
